@@ -296,13 +296,13 @@ for epoch in range(opt.nepoch):
         '[%d/%d] Loss_D: %.4f Loss_G: %.4f, Wasserstein_dist: %.4f, real_ins_contras_loss:%.4f, fake_ins_contras_loss:%.4f, cls_loss_real: %.4f, cls_loss_fake: %.4f'
         % (epoch, opt.nepoch, D_cost, G_cost, Wasserstein_D, real_ins_contras_loss, fake_ins_contras_loss, cls_loss_real, cls_loss_fake))
     # 每一列有多少個 hard negatives
+    # 假設 hn_real, hn_fake 均為 (batch_size, batch_size) 的 mask
     hn_real_counts = hn_real.sum(dim=1)
     hn_fake_counts = hn_fake.sum(dim=1)
-    
-    print("Hard Negatives (Real) - 平均每個樣本數量:", hn_real_counts.mean().item())
-    print("Hard Negatives (Fake) - 平均每個樣本數量:", hn_fake_counts.mean().item())
-    print("最大值/最小值 (Real):", hn_real_counts.max().item(), "/", hn_real_counts.min().item())
-    print("最大值/最小值 (Fake):", hn_fake_counts.max().item(), "/", hn_fake_counts.min().item())
+
+    print(f"Hard Negatives (Real) - 平均: {hn_real_counts.mean():.2f}, 標準差: {hn_real_counts.std():.2f}, 最大: {hn_real_counts.max()}, 最小: {hn_real_counts.min()}")
+    print(f"Hard Negatives (Fake) - 平均: {hn_fake_counts.mean():.2f}, 標準差: {hn_fake_counts.std():.2f}, 最大: {hn_fake_counts.max()}, 最小: {hn_fake_counts.min()}")
+
 
 
     
