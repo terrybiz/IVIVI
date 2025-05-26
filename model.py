@@ -29,7 +29,7 @@ class Embedding_Net(nn.Module):
         out_z = F.normalize(self.fc2(embedding), dim=1)
         return embedding,out_z
 ############################################################################        
-class MLP_G(nn.Module):
+class CrossAttention_MLP_G(nn.Module):
     def __init__(self, opt):
         super().__init__()
         self.noise_proj = nn.Linear(opt.nz, opt.ngh)
@@ -71,7 +71,7 @@ class FiLM_MLP_G(nn.Module):
         h = self.fc3(h)
         return h
 #########################################################
-class originalMLP_G(nn.Module):
+class MLP_G(nn.Module):
     def __init__(self, opt):
         super(MLP_G, self).__init__()
         self.fc1 = nn.Linear(opt.attSize + opt.nz, opt.ngh)
@@ -114,7 +114,7 @@ class ResidualBlock(nn.Module):
         h = self.ln2(self.fc2(h))
         return self.act2(h + x)
 
-class MLP_CRITIC(nn.Module):
+class improvment_MLP_CRITIC(nn.Module):
     def __init__(self, opt):
         super().__init__()
         self.fc_in = nn.Linear(opt.resSize + opt.attSize, opt.ndh)
@@ -134,7 +134,7 @@ class MLP_CRITIC(nn.Module):
         return out
 
 ############################################
-class Original_MLP_CRITIC(nn.Module):
+class MLP_CRITIC(nn.Module):
     def __init__(self, opt):
         super(MLP_CRITIC, self).__init__()
         self.fc1 = nn.Linear(opt.resSize + opt.attSize, opt.ndh)
