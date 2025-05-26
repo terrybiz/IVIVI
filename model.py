@@ -28,7 +28,7 @@ class Embedding_Net(nn.Module):
         embedding= self.relu(self.fc1(features))
         out_z = F.normalize(self.fc2(embedding), dim=1)
         return embedding,out_z
-        
+############################################################################        
 class MLP_G(nn.Module):
     def __init__(self, opt):
         super().__init__()
@@ -47,7 +47,7 @@ class MLP_G(nn.Module):
         out = out.squeeze(1)
         out = self.relu(self.fc(out))
         return out
-
+######################################################################
 
 class FiLM_MLP_G(nn.Module):
     def __init__(self, opt):
@@ -70,7 +70,7 @@ class FiLM_MLP_G(nn.Module):
         h = self.dropout(h)
         h = self.fc3(h)
         return h
-
+#########################################################
 class originalMLP_G(nn.Module):
     def __init__(self, opt):
         super(MLP_G, self).__init__()
@@ -87,8 +87,54 @@ class originalMLP_G(nn.Module):
         h = self.lrelu(self.fc1(h))
         h = self.relu(self.fc2(h))
         return h
+####################################################
+def weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Linear') != -1:
+        m.weight.data.normal_(0.0, 0.02)
+        m.bias.data.fill_(0)
+    elif classname.find('BatchNorm') != -1:
+        m.weight.data.normal_(1.0, 0.02)
+        m.bias.data.fill_(0)
+
+class ResidualBlock(nn.Module):
+    def __init__(self, size):
+        super().__init__()
+        self.fc1 = nn.Linear(size, size)
+        self.ln1 = nn.LayerNorm(size)
+        self.act1 = nn.LeakyReLU(0.2, True)
+        self.fc2 = nn.Linear(size, size)
+        self.ln2 = nn.LayerNorm(size)
+        self.dropout = nn.Dropout(0.2)
+        self.act2 = nn.LeakyReLU(0.2, True)
+
+    def forward(self, x):
+        h = self.act1(self.ln1(self.fc1(x)))
+        h = self.dropout(h)
+        h = self.ln2(self.fc2(h))
+        return self.act2(h + x)
 
 class MLP_CRITIC(nn.Module):
+    def __init__(self, opt):
+        super().__init__()
+        self.fc_in = nn.Linear(opt.resSize + opt.attSize, opt.ndh)
+        self.ln_in = nn.LayerNorm(opt.ndh)
+        self.act_in = nn.LeakyReLU(0.2, True)
+        self.resblock1 = ResidualBlock(opt.ndh)
+        self.resblock2 = ResidualBlock(opt.ndh)
+        self.fc_out = nn.Linear(opt.ndh, 1)
+        self.apply(weights_init)
+
+    def forward(self, x, att):
+        h = torch.cat((x, att), 1)
+        h = self.act_in(self.ln_in(self.fc_in(h)))
+        h = self.resblock1(h)
+        h = self.resblock2(h)
+        out = self.fc_out(h)
+        return out
+
+############################################
+class Original_MLP_CRITIC(nn.Module):
     def __init__(self, opt):
         super(MLP_CRITIC, self).__init__()
         self.fc1 = nn.Linear(opt.resSize + opt.attSize, opt.ndh)
