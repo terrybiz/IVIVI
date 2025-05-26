@@ -32,6 +32,26 @@ class Embedding_Net(nn.Module):
 class MLP_G(nn.Module):
     def __init__(self, opt):
         super().__init__()
+        self.noise_proj = nn.Linear(opt.nz, opt.ngh)
+        self.att_proj = nn.Linear(opt.attSize, opt.ngh)
+        self.attn = nn.MultiheadAttention(opt.ngh, num_heads=4, batch_first=True)
+        self.fc = nn.Linear(opt.ngh, opt.resSize)
+        self.lrelu = nn.LeakyReLU(0.2, True)
+        self.relu = nn.ReLU(True)
+        self.apply(weights_init)
+    def forward(self, noise, att):
+        n = self.lrelu(self.noise_proj(noise)).unsqueeze(1)  # [batch, 1, ngh]
+        a = self.lrelu(self.att_proj(att)).unsqueeze(1)      # [batch, 1, ngh]
+        # cross attention: noise queries att (可以反過來)
+        out, _ = self.attn(n, a, a)                         # [batch, 1, ngh]
+        out = out.squeeze(1)
+        out = self.relu(self.fc(out))
+        return out
+
+
+class FiLM_MLP_G(nn.Module):
+    def __init__(self, opt):
+        super().__init__()
         self.fc_noise = nn.Linear(opt.nz, opt.ngh)
         self.fc_att_gamma = nn.Linear(opt.attSize, opt.ngh)
         self.fc_att_beta = nn.Linear(opt.attSize, opt.ngh)
