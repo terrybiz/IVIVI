@@ -28,7 +28,28 @@ class Embedding_Net(nn.Module):
         embedding= self.relu(self.fc1(features))
         out_z = F.normalize(self.fc2(embedding), dim=1)
         return embedding,out_z
-
+        
+class ImprovedMLP_G(nn.Module):
+    def __init__(self, opt):
+        super().__init__()
+        self.fc_noise = nn.Linear(opt.nz, opt.ngh)
+        self.fc_att_gamma = nn.Linear(opt.attSize, opt.ngh)
+        self.fc_att_beta = nn.Linear(opt.attSize, opt.ngh)
+        self.fc2 = nn.Linear(opt.ngh, opt.ngh)
+        self.fc3 = nn.Linear(opt.ngh, opt.resSize)
+        self.relu = nn.ReLU(True)
+        self.ln = nn.LayerNorm(opt.ngh)
+        self.dropout = nn.Dropout(0.3)
+        self.apply(weights_init)
+    def forward(self, noise, att):
+        h = self.relu(self.fc_noise(noise))
+        gamma = self.fc_att_gamma(att)
+        beta = self.fc_att_beta(att)
+        h = gamma * h + beta
+        h = self.ln(self.relu(self.fc2(h)))
+        h = self.dropout(h)
+        h = self.fc3(h)
+        return h
 
 class MLP_G(nn.Module):
     def __init__(self, opt):
