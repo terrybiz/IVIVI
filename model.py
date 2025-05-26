@@ -29,7 +29,7 @@ class Embedding_Net(nn.Module):
         out_z = F.normalize(self.fc2(embedding), dim=1)
         return embedding,out_z
         
-class ImprovedMLP_G(nn.Module):
+class MLP_G(nn.Module):
     def __init__(self, opt):
         super().__init__()
         self.fc_noise = nn.Linear(opt.nz, opt.ngh)
@@ -51,7 +51,7 @@ class ImprovedMLP_G(nn.Module):
         h = self.fc3(h)
         return h
 
-class MLP_G(nn.Module):
+class originalMLP_G(nn.Module):
     def __init__(self, opt):
         super(MLP_G, self).__init__()
         self.fc1 = nn.Linear(opt.attSize + opt.nz, opt.ngh)
