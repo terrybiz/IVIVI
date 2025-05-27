@@ -2,6 +2,18 @@ from __future__ import print_function
 import torch
 import torch.nn as nn
 
+class BYOL_Loss(nn.Module):
+    def init(self):
+        super().init()
+        self.loss_fn = nn.MSELoss()
+    def forward(self, pred, target):
+        return self.loss_fn(pred, target.detach())
+
+
+
+
+
+
 class SupConLoss(nn.Module):
     def __init__(self, temperature=0.01):
         super(SupConLoss, self).__init__()
